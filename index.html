@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>延恩鎮 - Galgame</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+:root {
+  --pixel: 2px;
+  --bg: #0a0a1a;
+  --panel: #12122a;
+  --border: #4a90d9;
+  --accent: #f7d94c;
+  --pink: #e85d9e;
+  --green: #4ecb71;
+  --red: #e85050;
+  --text: #e8e8f0;
+  --dim: #8888aa;
+  --white: #ffffff;
+  --sky: #1a2a4a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pixel-font { font-family: 'Press Start 2P', monospace; }
+
+/* ===== SCREENS ===== */
+.screen { display: none; width: 800px; max-width: 100vw; }
+.screen.active { display: flex; flex-direction: column; }
+
+/* ===== TITLE SCREEN ===== */
+#title-screen {
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--bg);
+  position: relative;
+}
+
+.title-bg {
+  position: absolute; inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(74,144,217,0.07) 32px),
+    repeating-linear-gradient(90deg, transparent, transparent 31px, rgba(74,144,217,0.07) 32px);
+}
+
+.pixel-city {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 120px;
+  background: 
+    /* Buildings */
+    linear-gradient(to top, #1a1a3a 0%, #1a1a3a 100%);
+  clip-path: polygon(
+    0% 100%, 0% 60%, 5% 60%, 5% 40%, 10% 40%, 10% 60%,
+    15% 60%, 15% 30%, 20% 30%, 20% 60%,
+    25% 60%, 25% 45%, 30% 45%, 30% 60%,
+    35% 60%, 35% 20%, 40% 20%, 40% 60%,
+    45% 60%, 45% 50%, 50% 50%, 50% 60%,
+    55% 60%, 55% 35%, 60% 35%, 60% 60%,
+    65% 60%, 65% 25%, 70% 25%, 70% 60%,
+    75% 60%, 75% 40%, 80% 40%, 80% 60%,
+    85% 60%, 85% 30%, 90% 30%, 90% 60%,
+    95% 60%, 95% 50%, 100% 50%, 100% 100%
+  );
+}
+
+.star {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: white;
+  animation: twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.3; }
+  to { opacity: 1; }
+}
+
+.title-content { position: relative; z-index: 10; text-align: center; }
+
+.game-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 36px;
+  color: var(--accent);
+  text-shadow: 4px 4px 0 #a08000, 8px 8px 0 #604800;
+  margin-bottom: 12px;
+  animation: titleFloat 3s ease-in-out infinite;
+}
+
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.game-subtitle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--pink);
+  letter-spacing: 3px;
+  margin-bottom: 48px;
+}
+
+.menu-btn {
+  display: block;
+  background: var(--panel);
+  border: 3px solid var(--border);
+  color: var(--text);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  padding: 14px 32px;
+  margin: 8px auto;
+  cursor: pointer;
+  width: 280px;
+  text-align: center;
+  transition: all 0.1s;
+  position: relative;
+}
+
+.menu-btn:hover, .menu-btn.selected {
+  background: var(--border);
+  color: var(--bg);
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--accent);
+}
+
+/* ===== MAIN GAME SCREEN ===== */
+#game-screen {
+  height: 100vh;
+  flex-direction: row;
+  gap: 0;
+}
+
+/* Left: Scene */
+.scene-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 3px solid var(--border);
+}
+
+.scene-view {
+  height: 320px;
+  position: relative;
+  overflow: hidden;
+  background: var(--sky);
+  border-bottom: 3px solid var(--border);
+}
+
+/* Scene renderers */
+.scene-bg {
+  position: absolute; inset: 0;
+  transition: all 0.3s;
+}
+
+/* Town square scene */
+.scene-square .sky { position: absolute; top:0; left:0; right:0; height: 55%; background: linear-gradient(180deg, #0d1b3e 0%, #1a3a6e 100%); }
+.scene-square .ground { position: absolute; bottom:0; left:0; right:0; height: 45%; background: linear-gradient(180deg, #2a2a5a 0%, #1a1a3a 100%); }
+.scene-square .road { position: absolute; bottom: 30%; left:0; right:0; height: 15%; background: #222244; border-top: 3px solid #4a4a6a; }
+.scene-square .statue {
+  position: absolute; bottom: 45%; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 80px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.statue-head { width: 18px; height: 18px; background: #c8a878; border: 2px solid #a07848; border-radius: 2px; }
+.statue-body { width: 22px; height: 30px; background: #888877; border: 2px solid #666655; }
+.statue-base { width: 36px; height: 20px; background: #666655; border: 2px solid #444433; }
+.statue-sign { 
+  position: absolute; bottom: -18px;
+  font-size: 7px; color: var(--accent); 
+  font-family: 'Press Start 2P', monospace;
+  white-space: nowrap;
+}
+
+.scene-square .radish {
+  position: absolute;
+  bottom: 42%;
+  width: 14px; height: 24px;
+}
+.radish-top { width: 14px; height: 14px; background: #66bb55; border-radius: 2px 2px 0 0; }
+.radish-body { width: 10px; height: 12px; background: #f0f0f0; border-radius: 0 0 5px 5px; margin: auto; }
+
+/* Night overlay */
+.night-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,20,0.6);
+  display: none;
+  z-index: 5;
+}
+.moon {
+  position: absolute; top: 20px; right: 40px;
+  width: 28px; height: 28px;
+  background: #ffffc0;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255,255,180,0.5);
+}
+
+/* NPC sprites (pixel art via CSS) */
+.npc-sprite {
+  position: absolute;
+  bottom: 42%;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.npc-sprite:hover { transform: translateY(-4px) scale(1.05); }
+
+.pixel-char {
+  width: 24px; height: 40px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  position: relative;
+}
+.char-head { width: 20px; height: 16px; border-radius: 3px 3px 0 0; border: 2px solid rgba(0,0,0,0.4); }
+.char-body { width: 18px; height: 14px; border: 2px solid rgba(0,0,0,0.3); }
+.char-legs { width: 18px; height: 10px; display: flex; }
+.char-leg { flex: 1; border: 1px solid rgba(0,0,0,0.3); }
+.char-name {
+  position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%);
+  font-size: 7px; font-family: 'Press Start 2P', monospace;
+  color: var(--accent); white-space: nowrap;
+  background: rgba(0,0,0,0.7); padding: 1px 3px;
+}
+
+/* Specific NPCs */
+.npc-zhen .char-head { background: #f5b8d0; }
+.npc-zhen .char-body { background: #5090e0; }
+.npc-zhen .char-leg { background: #2060c0; }
+
+.npc-679 .char-head { background: #ffd080; }
+.npc-679 .char-body { background: #226622; }
+.npc-679 .char-leg { background: #114411; }
+
+.npc-rong .char-head { background: #80d0ff; border-radius: 50% 50% 0 0; }
+.npc-rong .char-body { background: #4080b0; }
+.npc-rong .char-leg { background: #204060; }
+
+/* Scene containers */
+.scene-label {
+  position: absolute; top: 8px; left: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--accent);
+  background: rgba(0,0,0,0.7);
+  padding: 3px 6px;
+  border: 1px solid var(--accent);
+}
+
+.time-display {
+  position: absolute; top: 8px; right: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.7);
+}
+
+/* ===== DIALOGUE BOX ===== */
+.dialogue-box {
+  background: rgba(10,10,26,0.97);
+  border-top: 3px solid var(--border);
+  padding: 14px 18px;
+  min-height: 130px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.dialogue-speaker {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.dialogue-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text);
+  min-height: 60px;
+}
+
+.dialogue-cursor {
+  display: inline-block;
+  width: 10px; height: 14px;
+  background: var(--text);
+  animation: blink 0.8s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+.dialogue-choices {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-top: 10px;
+}
+
+.choice-btn {
+  background: transparent;
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.1s;
+}
+.choice-btn:hover {
+  background: var(--border);
+  color: var(--bg);
+}
+.choice-btn::before { content: "▶ "; color: var(--accent); }
+
+/* ===== RIGHT PANEL: STATS ===== */
+.stats-panel {
+  width: 220px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 8px;
+  overflow-y: auto;
+  border-left: 3px solid var(--border);
+}
+
+.panel-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--border);
+  text-align: center;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.stat-row { display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px; }
+.stat-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--dim);
+  display: flex; justify-content: space-between;
+}
+.stat-label span { color: var(--accent); }
+
+.stat-bar {
+  height: 10px;
+  background: #1a1a3a;
+  border: 2px solid #333355;
+  position: relative;
+}
+.stat-fill {
+  height: 100%;
+  transition: width 0.4s;
+}
+.stat-fill.design { background: var(--pink); }
+.stat-fill.social { background: var(--green); }
+.stat-fill.combat { background: #ff8800; }
+.stat-fill.mood-p { background: #60d0ff; }
+.stat-fill.mood-n { background: var(--red); }
+.stat-fill.favor { background: var(--accent); }
+
+.money-display {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  text-align: center;
+  padding: 6px;
+  border: 2px solid var(--accent);
+  background: rgba(247,217,76,0.05);
+}
+
+.day-display {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--text);
+  text-align: center;
+  padding: 4px;
+  border: 2px solid var(--border);
+}
+
+.favor-display {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  text-align: center;
+  padding: 6px;
+  border: 2px solid var(--pink);
+  background: rgba(232,93,158,0.05);
+}
+.favor-val { font-size: 14px; color: var(--pink); display: block; }
+
+/* ===== BOTTOM ACTION PANEL ===== */
+.action-panel {
+  background: #0d0d22;
+  border-top: 3px solid var(--border);
+  padding: 10px 14px;
+  flex-shrink: 0;
+}
+
+.action-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.action-btn {
+  background: #111130;
+  border: 2px solid #333366;
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 11px;
+  padding: 7px 4px;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-align: center;
+}
+.action-btn:hover {
+  background: var(--border);
+  color: var(--bg);
+  border-color: var(--border);
+}
+.action-btn .action-icon { font-size: 14px; display: block; margin-bottom: 2px; }
+.action-btn .action-eff { font-size: 9px; color: var(--green); display: block; }
+
+.btn-end-day {
+  width: 100%;
+  margin-top: 6px;
+  background: #1a1a00;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.btn-end-day:hover { background: var(--accent); color: var(--bg); }
+
+/* ===== MAP SCREEN ===== */
+#map-screen {
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg);
+}
+
+.map-container {
+  position: relative;
+  width: 700px;
+  height: 500px;
+  border: 3px solid var(--border);
+  background: #0a1a2a;
+  overflow: hidden;
+}
+
+.map-title-bar {
+  width: 700px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 3px solid var(--border);
+  border-bottom: none;
+}
+
+.map-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--accent);
+}
+
+.map-close {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--red);
+  cursor: pointer;
+  border: 2px solid var(--red);
+  padding: 4px 8px;
+  background: transparent;
+}
+.map-close:hover { background: var(--red); color: white; }
+
+/* Taiwan SVG map areas */
+.map-area {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.map-area:hover { filter: brightness(1.4); }
+.map-area.current { filter: brightness(1.6); }
+
+.map-info {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  background: rgba(0,0,0,0.85);
+  border: 2px solid var(--border);
+  padding: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--text);
+  min-width: 150px;
+}
+
+/* ===== INVENTORY ===== */
+#inventory-screen {
+  height: 100vh;
+  flex-direction: column;
+  background: var(--bg);
+  padding: 20px;
+}
+
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--border);
+}
+
+.inv-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+.inv-item {
+  background: var(--panel);
+  border: 2px solid #333355;
+  padding: 10px 6px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.inv-item:hover { border-color: var(--accent); }
+.inv-item.selected { border-color: var(--pink); background: rgba(232,93,158,0.1); }
+
+.item-icon { font-size: 22px; }
+.item-name { font-size: 10px; color: var(--text); }
+.item-count { font-size: 10px; color: var(--dim); }
+
+.inv-detail {
+  height: 120px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  padding: 12px;
+  margin-top: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.inv-detail-icon { font-size: 40px; }
+.inv-detail-info { flex: 1; }
+.inv-detail-name { font-family: 'Press Start 2P', monospace; font-size: 11px; color: var(--accent); margin-bottom: 8px; }
+.inv-detail-desc { font-size: 12px; color: var(--dim); line-height: 1.6; }
+
+.inv-actions { display: flex; gap: 8px; margin-top: 10px; }
+.inv-use-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 2px solid;
+  background: transparent;
+  transition: all 0.1s;
+}
+.btn-use { border-color: var(--green); color: var(--green); }
+.btn-use:hover { background: var(--green); color: var(--bg); }
+.btn-give { border-color: var(--pink); color: var(--pink); }
+.btn-give:hover { background: var(--pink); color: var(--bg); }
+.btn-back-inv { border-color: var(--dim); color: var(--dim); }
+.btn-back-inv:hover { background: var(--dim); color: var(--bg); }
+
+/* ===== COMBAT SCREEN ===== */
+#combat-screen {
+  height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #050510;
+  gap: 20px;
+}
+
+.combat-arena {
+  width: 700px;
+  height: 300px;
+  background: #0a0a20;
+  border: 3px solid #ff4444;
+  position: relative;
+  overflow: hidden;
+}
+
+.combat-bg {
+  position: absolute; inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(255,68,68,0.05) 16px),
+    repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(255,68,68,0.05) 16px);
+}
+
+.combat-player {
+  position: absolute;
+  bottom: 20px; left: 60px;
+  width: 32px; height: 48px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.combat-enemy {
+  position: absolute;
+  bottom: 20px; right: 60px;
+  width: 32px; height: 48px;
+  display: flex; flex-direction: column; align-items: center;
+  transform: scaleX(-1);
+}
+
+.fighter-head { width: 22px; height: 18px; background: #f5b8d0; border: 2px solid #c08090; border-radius: 3px; }
+.fighter-body { width: 24px; height: 16px; background: #4466cc; border: 2px solid #2244aa; }
+.fighter-legs { width: 22px; height: 14px; display: flex; }
+.fighter-leg { flex: 1; background: #2244aa; border: 1px solid #112288; }
+.fighter-gun { 
+  position: absolute; right: -12px; top: 18px;
+  width: 14px; height: 8px; background: #888; border: 1px solid #555;
+}
+
+.enemy-head { background: #ff6644; }
+.enemy-body { background: #882200; }
+.enemy-leg { background: #551100; }
+
+.bullet {
+  position: absolute;
+  width: 8px; height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  top: 50%;
+  animation: bulletFly 0.3s linear forwards;
+}
+@keyframes bulletFly {
+  from { left: 120px; }
+  to { left: 560px; }
+}
+
+.combat-hud {
+  width: 700px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hp-block {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--text);
+  background: var(--panel);
+  border: 2px solid var(--red);
+  padding: 8px 16px;
+  min-width: 200px;
+}
+.hp-bar { height: 12px; background: #1a0a0a; border: 2px solid #440000; margin-top: 6px; }
+.hp-fill { height: 100%; background: var(--red); transition: width 0.3s; }
+
+.combat-log {
+  width: 700px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  padding: 10px;
+  height: 80px;
+  overflow-y: auto;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--text);
+  line-height: 1.8;
+}
+
+.combat-actions {
+  display: flex; gap: 10px;
+}
+.combat-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 2px solid;
+  background: transparent;
+  transition: all 0.15s;
+}
+.btn-attack { border-color: var(--red); color: var(--red); }
+.btn-attack:hover { background: var(--red); color: white; }
+.btn-dodge { border-color: var(--green); color: var(--green); }
+.btn-dodge:hover { background: var(--green); color: var(--bg); }
+.btn-snipe { border-color: var(--accent); color: var(--accent); }
+.btn-snipe:hover { background: var(--accent); color: var(--bg); }
+.btn-retreat { border-color: var(--dim); color: var(--dim); }
+.btn-retreat:hover { background: var(--dim); color: var(--bg); }
+
+/* ===== NOTIFICATION ===== */
+.notification {
+  position: fixed;
+  top: 20px; right: 20px;
+  background: var(--panel);
+  border: 3px solid var(--accent);
+  padding: 12px 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--accent);
+  z-index: 1000;
+  animation: slideIn 0.3s ease, fadeOut 0.5s ease 2s forwards;
+  max-width: 260px;
+  line-height: 1.8;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(300px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; pointer-events: none; }
+}
+
+/* ===== ACHIEVEMENT ===== */
+.achievement-popup {
+  position: fixed;
+  bottom: 30px; left: 50%; transform: translateX(-50%);
+  background: #1a1200;
+  border: 3px solid var(--accent);
+  padding: 16px 24px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--accent);
+  z-index: 1000;
+  text-align: center;
+  animation: achieveAnim 0.5s ease;
+}
+@keyframes achieveAnim {
+  0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+  70% { transform: translateX(-50%) scale(1.05); }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+.achieve-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+.achieve-title { color: white; margin-bottom: 6px; }
+
+/* ===== ENDING SCREEN ===== */
+#ending-screen {
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 24px;
+}
+.ending-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 24px;
+  text-align: center;
+  animation: titleFloat 2s ease-in-out infinite;
+}
+.ending-text {
+  font-size: 16px;
+  text-align: center;
+  max-width: 600px;
+  line-height: 2;
+  color: var(--dim);
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* Shop */
+#shop-screen {
+  height: 100vh;
+  flex-direction: column;
+  background: var(--bg);
+  padding: 20px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  padding: 10px 0;
+}
+
+.shop-item {
+  background: var(--panel);
+  border: 2px solid #333355;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.shop-item:hover { border-color: var(--accent); }
+.shop-item-icon { font-size: 24px; }
+.shop-item-name { font-size: 13px; font-weight: bold; }
+.shop-item-price { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--accent); }
+.shop-item-effect { font-size: 11px; color: var(--dim); }
+.shop-item.unavail { opacity: 0.4; cursor: not-allowed; }
+
+.btn-close-shop {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  padding: 8px 20px;
+  border: 2px solid var(--border);
+  color: var(--border);
+  background: transparent;
+  cursor: pointer;
+  margin-top: 10px;
+  align-self: flex-start;
+}
+.btn-close-shop:hover { background: var(--border); color: var(--bg); }
+
+/* Fishing */
+.fishing-anim {
+  text-align: center;
+  font-size: 48px;
+  animation: bobbing 1s ease-in-out infinite;
+}
+@keyframes bobbing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ===== TITLE SCREEN ===== -->
+<div id="title-screen" class="screen active">
+  <div class="title-bg"></div>
+  <div class="pixel-city"></div>
+  <div class="title-content">
+    <div class="game-title">延恩鎮</div>
+    <div class="game-subtitle">VISUAL NOVEL RPG</div>
+    <button class="menu-btn" onclick="startGame()">▶ 開始遊戲</button>
+    <button class="menu-btn" onclick="showMap()">🗺 查看地圖</button>
+    <button class="menu-btn" onclick="showHelp()">？ 遊戲說明</button>
+  </div>
+</div>
+
+<!-- ===== MAIN GAME SCREEN ===== -->
+<div id="game-screen" class="screen">
+  <div class="scene-panel">
+    <!-- Scene View -->
+    <div class="scene-view" id="scene-view">
+      <div class="scene-bg scene-square" id="scene-bg">
+        <div class="sky"></div>
+        <div class="ground"></div>
+        <div class="road"></div>
+        <!-- Radishes -->
+        <div class="radish" style="left:80px">
+          <div class="radish-top"></div>
+          <div class="radish-body"></div>
+        </div>
+        <div class="radish" style="left:160px">
+          <div class="radish-top"></div>
+          <div class="radish-body"></div>
+        </div>
+        <div class="radish" style="left:500px">
+          <div class="radish-top"></div>
+          <div class="radish-body"></div>
+        </div>
+        <div class="radish" style="left:600px">
+          <div class="radish-top"></div>
+          <div class="radish-body"></div>
+        </div>
+        <!-- Statue -->
+        <div class="statue npc-sprite" onclick="interactStatue()">
+          <div class="statue-head"></div>
+          <div class="statue-body"></div>
+          <div class="statue-base"></div>
+          <div class="statue-sign">傑拉德威</div>
+        </div>
+        <!-- NPCs -->
+        <div class="npc-sprite" style="left:200px" id="npc-zhen" onclick="talkZhen()">
+          <div class="pixel-char npc-zhen">
+            <div class="char-head"></div>
+            <div class="char-body"></div>
+            <div class="char-legs"><div class="char-leg"></div><div class="char-leg"></div></div>
+            <div class="char-name">陣恩延</div>
+          </div>
+        </div>
+        <div class="npc-sprite" style="left:420px" id="npc-679" onclick="talk679()">
+          <div class="pixel-char npc-679">
+            <div class="char-head"></div>
+            <div class="char-body"></div>
+            <div class="char-legs"><div class="char-leg"></div><div class="char-leg"></div></div>
+            <div class="char-name">679</div>
+          </div>
+        </div>
+        <div class="night-overlay" id="night-overlay">
+          <div class="moon"></div>
+        </div>
+      </div>
+      <div class="scene-label" id="scene-label">市中心廣場・傑拉德路</div>
+      <div class="time-display" id="time-display">☀ 白天</div>
+    </div>
+
+    <!-- Dialogue Box -->
+    <div class="dialogue-box" id="dialogue-box">
+      <div class="dialogue-speaker" id="dialogue-speaker">延恩鎮</div>
+      <div class="dialogue-text" id="dialogue-text">
+        歡迎來到延恩鎮。傑拉德威雕像高聳在市中心廣場，蘿蔔沿著傑拉德路整齊排列。<br>
+        今天是第1天。你打算做什麼呢？<span class="dialogue-cursor"></span>
+      </div>
+      <div class="dialogue-choices" id="dialogue-choices"></div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="action-panel" id="action-panel">
+      <div class="action-title">★ 今日行動選擇（每天可選2項）</div>
+      <div class="action-grid" id="action-grid">
+        <button class="action-btn" onclick="doAction('create')">
+          <span class="action-icon">🖌</span>創作基礎
+          <span class="action-eff">+設計2</span>
+        </button>
+        <button class="action-btn" onclick="doAction('draw')">
+          <span class="action-icon">✏</span>設計繪畫
+          <span class="action-eff">+設計1</span>
+        </button>
+        <button class="action-btn" onclick="doAction('shop')">
+          <span class="action-icon">🛍</span>去逛街
+          <span class="action-eff">+社交1</span>
+        </button>
+        <button class="action-btn" onclick="doAction('game')">
+          <span class="action-icon">🎮</span>打遊戲
+          <span class="action-eff">+戰鬥1 +心情1</span>
+        </button>
+        <button class="action-btn" onclick="talkZhen()">
+          <span class="action-icon">💬</span>找陣恩延
+          <span class="action-eff">+好感1 +社交1</span>
+        </button>
+        <button class="action-btn" onclick="doAction('daydream')">
+          <span class="action-icon">💭</span>發呆思考
+          <span class="action-eff">+設計1 +心情2</span>
+        </button>
+        <button class="action-btn" onclick="doAction('movie')">
+          <span class="action-icon">🎬</span>看電影
+          <span class="action-eff">+心情2 +設計1</span>
+        </button>
+        <button class="action-btn" onclick="doAction('records')">
+          <span class="action-icon">🎵</span>逛唱片店
+          <span class="action-eff">+心情1 +好感2</span>
+        </button>
+        <button class="action-btn" onclick="doAction('valorant')">
+          <span class="action-icon">🔫</span>找NPC打瓦
+          <span class="action-eff">+戰鬥2</span>
+        </button>
+        <button class="action-btn" onclick="doAction('pond')">
+          <span class="action-icon">🎣</span>去張雅塘
+          <span class="action-eff">隨機事件</span>
+        </button>
+        <button class="action-btn" onclick="openShop()">
+          <span class="action-icon">🏪</span>去超商
+          <span class="action-eff">購買道具</span>
+        </button>
+        <button class="action-btn" onclick="doAction('studio')">
+          <span class="action-icon">🎨</span>去工作室
+          <span class="action-eff">+社交1</span>
+        </button>
+      </div>
+      <button class="btn-end-day" onclick="endDay()">⏩ 結束今日 / 前往下一天</button>
+    </div>
+  </div>
+
+  <!-- Stats Panel -->
+  <div class="stats-panel">
+    <div class="panel-title">✦ 玩家狀態 ✦</div>
+    
+    <div class="day-display" id="day-display">第 1 天 ☀ 白天</div>
+    <div class="money-display" id="money-display">💰 $3000</div>
+
+    <div class="stat-row">
+      <div class="stat-label">設計 <span id="design-val">10</span>/100</div>
+      <div class="stat-bar"><div class="stat-fill design" id="design-bar" style="width:10%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label">社交 <span id="social-val">10</span>/100</div>
+      <div class="stat-bar"><div class="stat-fill social" id="social-bar" style="width:10%"></div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label">戰鬥 <span id="combat-val">10</span>/100</div>
+      <div class="stat-bar"><div class="stat-fill combat" id="combat-bar" style="width:10%"></div></div>
+    </div>
+
+    <div class="panel-title" style="margin-top:6px">♥ 心情</div>
+    <div class="stat-row">
+      <div class="stat-label">玩家心情 <span id="mood-val">50</span></div>
+      <div class="stat-bar" id="mood-bar-wrap">
+        <div class="stat-fill mood-p" id="mood-bar" style="width:66%"></div>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-label">陣恩延心情 <span id="zhen-mood-val">50</span></div>
+      <div class="stat-bar">
+        <div class="stat-fill mood-p" id="zhen-mood-bar" style="width:66%"></div>
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top:6px">💕 陣恩延好感度</div>
+    <div class="favor-display">
+      <span class="favor-val" id="favor-val">0</span>
+      <span id="favor-label">普通</span>
+    </div>
+
+    <div class="panel-title" style="margin-top:6px">📅 行動餘額</div>
+    <div class="day-display" id="actions-left">今日剩餘: 2 次</div>
+
+    <button class="menu-btn" style="font-size:8px; padding:8px; margin:4px 0; width:100%" onclick="showInventory()">🎒 背包</button>
+    <button class="menu-btn" style="font-size:8px; padding:8px; margin:4px 0; width:100%" onclick="showMap()">🗺 地圖</button>
+    <button class="menu-btn" style="font-size:8px; padding:8px; margin:4px 0; width:100%" onclick="startCombat()">⚔ 瓦羅蘭戰鬥</button>
+  </div>
+</div>
+
+<!-- ===== MAP SCREEN ===== -->
+<div id="map-screen" class="screen">
+  <div class="map-title-bar">
+    <div class="map-title">🗺 台灣地圖 - 延恩鎮世界</div>
+    <button class="map-close" onclick="closeMap()">✕ 關閉</button>
+  </div>
+  <div class="map-container">
+    <svg width="700" height="500" viewBox="0 0 700 500">
+      <!-- Taiwan simplified shape -->
+      <!-- Taipei area (north) -->
+      <g class="map-area" onclick="flyTo('taipei')" id="taipei-area">
+        <ellipse cx="420" cy="90" rx="120" ry="60" fill="#2a4a8a" stroke="#4a90d9" stroke-width="2"/>
+        <text x="420" y="75" text-anchor="middle" fill="#f7d94c" font-family="'Press Start 2P',monospace" font-size="9">台北市</text>
+        <text x="420" y="90" text-anchor="middle" fill="#aaa" font-family="'Noto Sans TC',sans-serif" font-size="8">含: 基隆區・宜蘭區・桃園區・新竹區</text>
+        <text x="420" y="105" text-anchor="middle" fill="#ff8800" font-family="'Press Start 2P',monospace" font-size="7">✈ $300</text>
+        <text x="420" y="120" text-anchor="middle" fill="#aaa" font-family="'Noto Sans TC',sans-serif" font-size="8">物價 ★★★</text>
+      </g>
+
+      <!-- Taichung area (middle) -->
+      <g class="map-area" onclick="flyTo('taichung')" id="taichung-area">
+        <ellipse cx="350" cy="240" rx="100" ry="55" fill="#2a6a3a" stroke="#4ecb71" stroke-width="2"/>
+        <text x="350" y="225" text-anchor="middle" fill="#f7d94c" font-family="'Press Start 2P',monospace" font-size="9">台中市</text>
+        <text x="350" y="240" text-anchor="middle" fill="#aaa" font-family="'Noto Sans TC',sans-serif" font-size="8">含: 彰化區・苗栗區・南投區</text>
+        <text x="350" y="255" text-anchor="middle" fill="#ff8800" font-family="'Press Start 2P',monospace" font-size="7">✈ $300</text>
+        <text x="350" y="270" text-anchor="middle" fill="#aaa" font-family="'Noto Sans TC',sans-serif" font-size="8">物價 ★★☆</text>
+      </g>
+
+      <!-- Kaohsiung area (south) -->
+      <g class="map-area" onclick="flyTo('kaohsiung')" id="kaohsiung-area">
+        <ellipse cx="360" cy="400" rx="110" ry="60" fill="#6a2a2a" stroke="#e85050" stroke-width="2"/>
+        <text x="360" y="385" text-anchor="middle" fill="#f7d94c" font-family="'Press Start 2P',monospace" font-size="9">高雄市</text>
+        <text x="360" y="400" text-anchor="middle" fill="#aaa" font-family="'Noto Sans TC',sans-serif" font-size="8">含: 台南區・嘉義區・屏東區・花蓮區</text>
+        <text x="360" y="415" text-anchor="middle" fill="#ff8800" font-family="'Press Start 2P',monospace" font-size="7">✈ $300</text>
+        <text x="360" y="430" text-anchor="middle" fill="#aaa" font-family="'Noto Sans TC',sans-serif" font-size="8">物價 ★★☆</text>
+      </g>
+
+      <!-- Flight paths -->
+      <line x1="420" y1="150" x2="350" y2="185" stroke="#4a90d9" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+      <line x1="350" y1="295" x2="360" y2="340" stroke="#4a90d9" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>
+      <text x="260" y="175" fill="#4a90d9" font-family="'Press Start 2P',monospace" font-size="7">✈</text>
+      <text x="260" y="320" fill="#4a90d9" font-family="'Press Start 2P',monospace" font-size="7">✈</text>
+
+      <!-- Current location marker -->
+      <circle cx="420" cy="90" r="8" fill="none" stroke="#f7d94c" stroke-width="2" id="current-loc"/>
+      <text x="420" y="93" text-anchor="middle" fill="#f7d94c" font-size="8">★</text>
+
+      <!-- Legend -->
+      <rect x="10" y="10" width="160" height="80" fill="rgba(0,0,0,0.7)" stroke="#4a90d9" stroke-width="1"/>
+      <text x="20" y="28" fill="#f7d94c" font-family="'Press Start 2P',monospace" font-size="7">★ 延恩鎮在台北</text>
+      <text x="20" y="44" fill="#aaa" font-family="'Press Start 2P',monospace" font-size="6">交通: 飛機 $300</text>
+      <text x="20" y="60" fill="#4ecb71" font-family="'Press Start 2P',monospace" font-size="6">台中=高雄物價</text>
+      <text x="20" y="76" fill="#e85050" font-family="'Press Start 2P',monospace" font-size="6">台北物價最高</text>
+
+      <!-- Decorative plane -->
+      <text x="500" y="160" fill="#aaa" font-size="20" opacity="0.4">✈</text>
+    </svg>
+    <div class="map-info" id="map-info">
+      點擊城市查看資訊<br>或搭飛機移動 ($300)
+    </div>
+  </div>
+</div>
+
+<!-- ===== INVENTORY SCREEN ===== -->
+<div id="inventory-screen" class="screen">
+  <div class="inv-header">
+    <div class="inv-title">🎒 背包</div>
+    <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--dim)" id="inv-money-display">💰 $3000</div>
+    <button class="btn-back-inv inv-use-btn" onclick="closeInventory()">返回遊戲</button>
+  </div>
+  <div class="inv-grid" id="inv-grid"></div>
+  <div class="inv-detail" id="inv-detail">
+    <div class="inv-detail-icon">📦</div>
+    <div class="inv-detail-info">
+      <div class="inv-detail-name">選擇物品查看詳情</div>
+      <div class="inv-detail-desc">點擊上方物品格</div>
+    </div>
+  </div>
+  <div class="inv-actions" id="inv-actions"></div>
+</div>
+
+<!-- ===== SHOP SCREEN ===== -->
+<div id="shop-screen" class="screen">
+  <div class="inv-header">
+    <div class="inv-title" id="shop-title">🏪 超商</div>
+    <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--accent)" id="shop-money">💰 $3000</div>
+    <button class="btn-close-shop" onclick="closeShop()">✕ 離開</button>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+</div>
+
+<!-- ===== COMBAT SCREEN ===== -->
+<div id="combat-screen" class="screen">
+  <div style="font-family:'Press Start 2P',monospace;font-size:14px;color:#ff4444;text-align:center">
+    ⚔ 瓦羅蘭對決
+  </div>
+  <div class="combat-arena">
+    <div class="combat-bg"></div>
+    <!-- Player -->
+    <div class="combat-player">
+      <div class="fighter-head"></div>
+      <div class="fighter-body" style="background:#4466cc"></div>
+      <div class="fighter-legs">
+        <div class="fighter-leg" style="background:#224488"></div>
+        <div class="fighter-leg" style="background:#224488"></div>
+      </div>
+      <div class="fighter-gun"></div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--accent);margin-top:4px">玩家</div>
+    </div>
+    <!-- Enemy -->
+    <div class="combat-enemy" id="combat-enemy">
+      <div class="fighter-head enemy-head"></div>
+      <div class="fighter-body enemy-body"></div>
+      <div class="fighter-legs">
+        <div class="fighter-leg enemy-leg"></div>
+        <div class="fighter-leg enemy-leg"></div>
+      </div>
+      <div class="fighter-gun" style="background:#c44;right:auto;left:-12px"></div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:var(--red);margin-top:4px;transform:scaleX(-1)" id="enemy-name">敵人</div>
+    </div>
+    <div id="bullet-container"></div>
+  </div>
+  <div class="combat-hud">
+    <div class="hp-block">
+      玩家 HP<br>
+      <div class="hp-bar"><div class="hp-fill" id="player-hp-bar" style="width:100%"></div></div>
+      <div id="player-hp-text" style="font-size:8px;margin-top:4px">100/100</div>
+    </div>
+    <div style="font-family:'Press Start 2P',monospace;font-size:18px;color:#ff8800">VS</div>
+    <div class="hp-block" style="border-color:var(--red)">
+      <span id="enemy-name-hp">敵人</span> HP<br>
+      <div class="hp-bar"><div class="hp-fill" id="enemy-hp-bar" style="width:100%;background:var(--red)"></div></div>
+      <div id="enemy-hp-text" style="font-size:8px;margin-top:4px">100/100</div>
+    </div>
+  </div>
+  <div class="combat-log" id="combat-log">戰鬥開始！準備決一勝負！<br></div>
+  <div class="combat-actions">
+    <button class="combat-btn btn-attack" onclick="combatAction('attack')">🔫 射擊</button>
+    <button class="combat-btn btn-dodge" onclick="combatAction('dodge')">💨 閃避</button>
+    <button class="combat-btn btn-snipe" onclick="combatAction('snipe')">🎯 狙擊</button>
+    <button class="combat-btn btn-retreat" onclick="combatAction('retreat')">🏃 撤退</button>
+  </div>
+</div>
+
+<!-- ===== ENDING SCREEN ===== -->
+<div id="ending-screen" class="screen">
+  <div class="ending-title" id="ending-title" style="color:var(--accent)">END</div>
+  <div class="ending-text" id="ending-text"></div>
+  <button class="menu-btn" onclick="restartGame()">↩ 重新開始</button>
+</div>
+
+<script>
+// ===== GAME STATE =====
+const G = {
+  day: 1,
+  dayOfWeek: 1, // 1=Mon...7=Sun
+  timePhase: 0, // 0=day,1=eve,2=night
+  money: 3000,
+  actionsLeft: 2,
+  actionsToday: [],
+  
+  // Stats
+  design: 10,
+  social: 10,
+  combat: 10,
+  mood: 50,
+  zhenMood: 50,
+  favor: 0,
+  
+  // Tracking
+  daysSinceZhen: 0,
+  statueUses: 0,
+  gameplayCount: 0,
+  shopCount679: 0,
+  artSubmissions: 0,
+  
+  // Inventory: { id, name, icon, count, ... }
+  inventory: [
+    { id: 'pen', name: '筆', icon: '✏', count: 3, type: 'create', effect: 'design+1', price: 20 },
+    { id: 'bento', name: '一般便當', icon: '🍱', count: 1, type: 'food', effect: '心情+3', price: 110, favorEffect: 4 }
+  ],
+  
+  location: 'taipei',
+  currentScene: 'square',
+  
+  // Combat
+  inCombat: false,
+  playerHP: 100,
+  enemyHP: 100,
+  enemyName: '路邊混混',
+  combatEnds: false,
+  isBossFight: false,
+  
+  achievements: []
+};
+
+const DAYS = ['', '週一', '週二', '週三', '週四', '週五', '週六', '週日'];
+const TIMES = ['☀ 白天', '🌅 傍晚', '🌙 夜晚'];
+
+// Items data
+const ITEMS = {
+  bento: { name:'一般便當', icon:'🍱', price:110, effect:'心情+3', moodUp:3, favorUp:4, type:'food' },
+  ijian: { name:'i珍食便當', icon:'🥡', price:60, effect:'心情+5（週一限定65折）', moodUp:5, favorUp:3, type:'food', monday:true },
+  drink_tht: { name:'特好喝飲料', icon:'🧋', price:45, effect:'心情+2', moodUp:2, favorUp:3, type:'food' },
+  drink_coco: { name:'COCO飲料', icon:'🥤', price:45, effect:'心情+2', moodUp:2, favorUp:2, type:'food' },
+  methanol: { name:'甲醇(假酒)', icon:'🍶', price:90, effect:'⚠ 心情-20(危險!)', moodUp:-20, favorUp:-5, type:'food', dangerous:true },
+  vodka: { name:'伏特加', icon:'🍸', price:90, effect:'心情+8', moodUp:8, favorUp:10, type:'food' },
+  south_rice: { name:'南部肉燥飯', icon:'🍚', price:35, effect:'心情+3', moodUp:3, favorUp:5, type:'food' },
+  north_rice: { name:'北部滷肉飯', icon:'🍜', price:45, effect:'心情+2', moodUp:2, favorUp:-2, type:'food' },
+  pen: { name:'筆', icon:'✏', price:20, effect:'設計+1', type:'create' },
+  tablet: { name:'液晶繪圖板', icon:'🖥', price:800, effect:'設計+4 心情+10', type:'create', oneUse:true },
+  player_tablet: { name:'平板', icon:'📱', price:600, effect:'設計+3 心情+5', type:'create', oneUse:true },
+  portable: { name:'隨身播放器', icon:'🎧', price:200, effect:'心情+3', type:'other' },
+  cd: { name:'CD', icon:'💿', price:80, effect:'心情+2', favorUp:2, type:'other' },
+  feather: { name:'夜露羽毛', icon:'🪶', price:0, effect:'心情+1', favorUp:3, type:'other' },
+  sniper: { name:'大狙', icon:'🔫', price:500, effect:'戰鬥+4', type:'weapon' },
+};
+
+// ===== INIT =====
+function initStars() {
+  const ts = document.getElementById('title-screen');
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 70 + '%';
+    s.style.animationDelay = Math.random() * 2 + 's';
+    s.style.opacity = Math.random() * 0.7 + 0.3;
+    ts.appendChild(s);
+  }
+}
+initStars();
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ===== START =====
+function startGame() {
+  showScreen('game-screen');
+  updateUI();
+  setDialogue('延恩鎮', '歡迎來到延恩鎮！傑拉德路上的蘿蔔在微風中搖擺，遠處教堂傳來Techno版本的聖歌。\n\n市中心廣場的傑拉德威雕像默默注視著你。你的旅程從這裡開始...');
+}
+
+function showHelp() {
+  setDialogue('系統說明', '【延恩鎮】\n' +
+    '每天可選2個行動\n' +
+    '與陣恩延好感度達80以上可觸發戀愛結局\n' +
+    '任一方心情降至-50會觸發壞結局\n' +
+    '設計達100+多次被說「醜」→真結局A\n' +
+    '打遊戲>20次→真結局C\n' +
+    '超商見679>10次→真結局B\n\n' +
+    '✈ 飛機票 $300 前往其他城市\n' +
+    '池塘可釣魚！超商周二公休！');
+  showScreen('game-screen');
+}
+
+// ===== UPDATE UI =====
+function updateUI() {
+  // Stats bars
+  setBar('design', G.design);
+  setBar('social', G.social);
+  setBar('combat', G.combat);
+  setMoodBar('mood', G.mood);
+  setMoodBar('zhen-mood', G.zhenMood);
+
+  document.getElementById('design-val').textContent = G.design;
+  document.getElementById('social-val').textContent = G.social;
+  document.getElementById('combat-val').textContent = G.combat;
+  document.getElementById('mood-val').textContent = G.mood;
+  document.getElementById('zhen-mood-val').textContent = G.zhenMood;
+  document.getElementById('money-display').textContent = '💰 $' + G.money;
+  document.getElementById('inv-money-display').textContent = '💰 $' + G.money;
+  document.getElementById('shop-money').textContent = '💰 $' + G.money;
+  document.getElementById('day-display').textContent = '第 ' + G.day + ' 天 ' + DAYS[G.dayOfWeek];
+  document.getElementById('time-display').textContent = TIMES[G.timePhase];
+  document.getElementById('actions-left').textContent = '今日剩餘: ' + G.actionsLeft + ' 次';
+
+  // Favor display
+  const fv = document.getElementById('favor-val');
+  fv.textContent = G.favor;
+  const fl = document.getElementById('favor-label');
+  if (G.favor >= 80) fl.textContent = '💕 深愛';
+  else if (G.favor >= 50) fl.textContent = '❤ 喜歡';
+  else if (G.favor >= 20) fl.textContent = '🌸 好感';
+  else if (G.favor >= 0) fl.textContent = '😐 普通';
+  else if (G.favor >= -30) fl.textContent = '😒 冷淡';
+  else fl.textContent = '😡 厭惡';
+
+  // Night overlay
+  const overlay = document.getElementById('night-overlay');
+  if (G.timePhase === 2) overlay.style.display = 'block';
+  else overlay.style.display = 'none';
+}
+
+function setBar(id, val) {
+  document.getElementById(id+'-bar').style.width = Math.max(0, Math.min(100, val)) + '%';
+}
+
+function setMoodBar(id, val) {
+  // mood ranges -50 to 100; bar shows percentage of 150
+  const pct = Math.max(0, (val + 50) / 150 * 100);
+  document.getElementById(id+'-bar').style.width = pct + '%';
+}
+
+// ===== DIALOGUE =====
+function setDialogue(speaker, text, choices) {
+  document.getElementById('dialogue-speaker').textContent = speaker;
+  document.getElementById('dialogue-text').innerHTML = text.replace(/\n/g, '<br>') + '<span class="dialogue-cursor"></span>';
+  const dc = document.getElementById('dialogue-choices');
+  dc.innerHTML = '';
+  if (choices) {
+    choices.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = c.text;
+      btn.onclick = c.fn;
+      dc.appendChild(btn);
+    });
+  }
+}
+
+// ===== STAT CHANGES =====
+function changeStat(stat, amount) {
+  if (stat === 'design') G.design = Math.max(0, Math.min(100, G.design + amount));
+  else if (stat === 'social') G.social = Math.max(0, Math.min(100, G.social + amount));
+  else if (stat === 'combat') G.combat = Math.max(0, Math.min(100, G.combat + amount));
+  else if (stat === 'mood') G.mood = Math.max(-50, Math.min(100, G.mood + amount));
+  else if (stat === 'zhenMood') G.zhenMood = Math.max(-50, Math.min(100, G.zhenMood + amount));
+  else if (stat === 'favor') G.favor = Math.max(-100, Math.min(100, G.favor + amount));
+  else if (stat === 'money') G.money = Math.max(0, G.money + amount);
+  updateUI();
+  checkDeathCondition();
+}
+
+function checkDeathCondition() {
+  if (G.mood <= -50) {
+    triggerEnding('bad', '玩家', '你的心情跌至谷底，再也無法面對延恩鎮的一切...');
+  } else if (G.zhenMood <= -50) {
+    triggerEnding('bad', '陣恩延', '陣恩延的精神狀態崩潰，從你的生活中消失了。');
+  }
+}
+
+function notify(msg, color) {
+  const n = document.createElement('div');
+  n.className = 'notification';
+  n.style.borderColor = color || 'var(--accent)';
+  n.style.color = color || 'var(--accent)';
+  n.textContent = msg;
+  document.body.appendChild(n);
+  setTimeout(() => n.remove(), 2700);
+}
+
+function achievement(icon, title, desc) {
+  if (G.achievements.includes(title)) return;
+  G.achievements.push(title);
+  const a = document.createElement('div');
+  a.className = 'achievement-popup';
+  a.innerHTML = `<span class="achieve-icon">${icon}</span><div class="achieve-title">★ 成就解鎖 ★</div><div>${title}</div>`;
+  document.body.appendChild(a);
+  setTimeout(() => a.remove(), 4000);
+}
+
+// ===== ACTIONS =====
+function useAction() {
+  if (G.actionsLeft <= 0) {
+    notify('今天的行動已用完！請結束今日繼續。', 'var(--red)');
+    return false;
+  }
+  G.actionsLeft--;
+  // Advance time
+  if (G.actionsLeft === 1) G.timePhase = 1;
+  if (G.actionsLeft === 0) G.timePhase = 2;
+  updateUI();
+  return true;
+}
+
+function doAction(type) {
+  if (!useAction()) return;
+  
+  switch(type) {
+    case 'create':
+      changeStat('design', 2);
+      setDialogue('創作', '你埋頭創作基礎練習，設計感有所提升。\n店家傳來周杰倫的《稻香》，讓你更有靈感。', null);
+      notify('+設計2', 'var(--pink)');
+      break;
+
+    case 'draw':
+      changeStat('design', 1);
+      setDialogue('繪畫', '你拿起筆開始設計繪畫。線條一筆一畫地構成作品。', null);
+      notify('+設計1', 'var(--pink)');
+      break;
+
+    case 'shop':
+      changeStat('social', 1);
+      setDialogue('逛街', '你漫步在傑拉德路和麥基路上，路邊蘿蔔整齊排列。\n遇到幾個路人，打了招呼，社交能力有所提升。', null);
+      notify('+社交1', 'var(--green)');
+      break;
+
+    case 'game':
+      G.gameplayCount++;
+      changeStat('combat', 1);
+      changeStat('mood', 1);
+      setDialogue('打遊戲', '你沉浸在瓦羅蘭的世界中。今天打的還不錯！', null);
+      notify('+戰鬥1 +心情1', 'var(--green)');
+      if (G.gameplayCount >= 20) {
+        triggerEnding('trueC', '', '');
+      }
+      break;
+
+    case 'daydream':
+      changeStat('design', 1);
+      changeStat('mood', 2);
+      setDialogue('發呆思考', '你望著窗外的蘿蔔田發呆，靈感悄悄浮現。\n心情也跟著好了起來。', null);
+      notify('+設計1 +心情2', 'var(--green)');
+      break;
+
+    case 'movie':
+      changeStat('mood', 2);
+      changeStat('design', 1);
+      const movies = ['《阿飛正傳》', '《霸王別姬》', '《春光乍洩》', '《胭脂扣》'];
+      const m = movies[Math.floor(Math.random() * movies.length)];
+      setDialogue('電影院', '你在電影院看了張國榮的' + m + '。\n常駐張國榮電影專區的海報閃閃發光。\n心情大好，也從中獲得了設計靈感。', null);
+      notify('+心情2 +設計1', 'var(--green)');
+      break;
+
+    case 'records':
+      changeStat('mood', 1);
+      changeStat('favor', 2);
+      const songs = ['周杰倫《七里香》', '周杰倫《夜曲》', '周杰倫《晴天》'];
+      const song = songs[Math.floor(Math.random() * songs.length)];
+      if (G.actionsToday.filter(a => a === 'records').length >= 2) {
+        changeStat('favor', -1);
+        setDialogue('唱片行', '店員又放了' + song + '，你有點聽膩了...\n陣恩延的好感度稍微下滑了。', null);
+        notify('+心情1 +好感2 -好感1(周杰倫over)', 'var(--accent)');
+      } else {
+        setDialogue('唱片行', '你在唱片行聽到了' + song + '，心情不錯。\n想到陣恩延也喜歡音樂，好感度上升了。', null);
+        notify('+心情1 +好感2', 'var(--accent)');
+      }
+      break;
+
+    case 'valorant':
+      startCombat();
+      return;
+
+    case 'pond':
+      pondEvent();
+      return;
+
+    case 'studio':
+      studioEvent();
+      return;
+  }
+  G.actionsToday.push(type);
+  checkTrueEndings();
+}
+
+// ===== POND EVENT =====
+function pondEvent() {
+  if (!useAction()) return;
+  const roll = Math.random();
+  let result = '';
+  
+  if (roll < 0.30) {
+    result = '你坐在張雅塘邊發呆，什麼都沒發生。\n只有水面偶爾泛起漣漪。';
+    notify('沒有收穫...', 'var(--dim)');
+  } else if (roll < 0.35) {
+    // 釣到青蛙
+    if (Math.random() < 0.5) {
+      // 高捷蛙
+      changeStat('mood', -1);
+      changeStat('design', 2);
+      result = '你釣到了傳說中的「高捷蛙」！牠瞪著你跳走了。\n心情有點低落，但這奇特的相遇給了你設計靈感！';
+      notify('-心情1 +設計2 (高捷蛙!)', 'var(--pink)');
+    } else {
+      result = '你釣到一隻青蛙。牠呱呱叫了幾聲就跳走了。';
+    }
+  } else if (roll < 0.55) {
+    // 釣到魚
+    const fish = Math.random() < 0.2 ? '鱈左' : '普通魚';
+    if (fish === '鱈左') {
+      addItem('fish_kodari', '鱈左', '🐟', 1);
+      result = '你居然釣到了「鱈左」！是蓉蓉！\n牠發出「嗚嗚嗚」的聲音，似乎在和你說話...';
+      changeStat('mood', 2);
+      notify('釣到鱈左！ +心情2', 'var(--accent)');
+    } else {
+      addItem('fish', '池塘的魚', '🐟', 1);
+      result = '你釣到一條魚！也許可以請Kuma加工？';
+    }
+  } else if (roll < 0.85) {
+    // 水草
+    if (Math.random() < 0.05) {
+      // 偽裝679
+      G.shopCount679++;
+      result = '你拉起一叢水草... 等等，這不是水草！這是偽裝成水草的679！\n679：「你不要跟任何人說...」\n他悄悄溜走了。';
+      notify('釣到偽裝679！', 'var(--accent)');
+    } else {
+      addItem('waterweed', '水草', '🌿', 1);
+      result = '你釣到了一把水草。也許KUMA可以用它做料理？';
+    }
+  } else {
+    // 隨機道具
+    const items = ['feather', 'cd'];
+    const it = items[Math.floor(Math.random() * items.length)];
+    const itemData = ITEMS[it];
+    addItem(it, itemData.name, itemData.icon, 1);
+    result = '你在池邊撿到了' + itemData.name + '！';
+    notify('獲得道具！', 'var(--accent)');
+  }
+  
+  setDialogue('張雅塘', result, null);
+}
+
+// ===== STUDIO EVENT =====
+function studioEvent() {
+  if (!useAction()) return;
+  changeStat('social', 1);
+  
+  let result = '你來到工作室，設計系的學生們正熱烈討論著各自的作品。\n你和幾個人交流，社交能力有所提升。';
+  
+  // Night: chance to meet Zhen
+  if (G.timePhase === 2) {
+    if (Math.random() < 0.4) {
+      // 4AM event
+      if (Math.random() < 0.2) {
+        G.zhenMood += Math.random() < 0.5 ? -10 : 5;
+        result = '凌晨四點，你在工作室遇到了精神狀態失常的陣恩延...\n陣恩延：「...你知道嗎，有時候我覺得設計根本沒有意義。」\n這次相遇效果隨機...';
+        changeStat('favor', Math.random() < 0.5 ? 5 : -3);
+      } else {
+        result = '夜晚的工作室，你意外遇到了陣恩延！\n陣恩延：「你也在趕稿？」\n這個偶然相遇讓好感度上升了！';
+        changeStat('favor', 8);
+      }
+    }
+    // 679 night chance
+    if (Math.random() < 0.5) {
+      G.shopCount679++;
+      result += '\n\n你還發現角落裡有個風滾草... 仔細看是679！他正在打盹。';
+    }
+  }
+  
+  // Methanol random
+  if (Math.random() < 0.1) {
+    result += '\n\n⚠ 你發現桌上有瓶標籤模糊的酒...（甲醇！小心！）';
+  }
+  
+  notify('+社交1', 'var(--green)');
+  setDialogue('工作室', result, null);
+}
+
+// ===== NPC INTERACTIONS =====
+function talkZhen() {
+  if (!useAction()) return;
+  G.daysSinceZhen = 0;
+  
+  let base = '你找到了陣恩延說話。\n';
+  let favorChange = 1;
+  let socialChange = 1;
+  
+  // Mood check
+  if (G.mood >= 80) {
+    favorChange += 1;
+    base += '你心情很好，聊天特別順暢！\n';
+  } else if (G.mood < 0) {
+    favorChange -= 1;
+    base += '你心情不太好，說話有點語無倫次...\n';
+  }
+  
+  if (G.zhenMood < 0) {
+    base += '陣恩延看起來心情不太好，說話有些冷淡。\n';
+    if (G.zhenMood < -30) {
+      base += '陣恩延（冷冷地）：「...有什麼事嗎。」\n';
+      favorChange = -1;
+    } else {
+      base += '陣恩延：「...我現在不太想說話。」\n';
+    }
+  } else if (G.favor >= 50) {
+    const responses = [
+      '陣恩延：「你今天有在設計什麼嗎？讓我看看你的作品。」',
+      '陣恩延：「我在想... 台北的設計風格和台中真的差很多。」',
+      '陣恩延：「你有聽電子音樂嗎？我最近迷上了Techno版聖詩。」',
+      '陣恩延：「下次我帶你去吃南部肉燥飯！那才是真正的肉燥飯。」'
+    ];
+    base += responses[Math.floor(Math.random() * responses.length)];
+  } else {
+    const responses = [
+      '陣恩延：「台北的東西是比較貴一點，但品質也更好。」',
+      '陣恩延：「你設計能力怎麼樣？」',
+      '陣恩延：「延恩鎮雖然小，但還是比其他區有趣多了。」',
+      '陣恩延：「我喜歡在工作室待到很晚。你呢？」'
+    ];
+    base += responses[Math.floor(Math.random() * responses.length)];
+  }
+  
+  changeStat('favor', favorChange);
+  changeStat('social', socialChange);
+  
+  setDialogue('陣恩延', base, [
+    { text: '認同台北物價高是有道理的', fn: () => { changeStat('favor', 3); setDialogue('陣恩延', '陣恩延的眼神亮了起來：「對吧！終於有人懂了！台北的品質就是不一樣！」', null); } },
+    { text: '展示你的設計作品', fn: () => { 
+      if (G.design >= 50) { changeStat('favor', 4); setDialogue('陣恩延', '陣恩延認真地看著你的作品：「這個構圖不錯，色彩感也很好。」', null); }
+      else { setDialogue('陣恩延', '陣恩延看了一眼：「還需要多練習。」', null); }
+    }},
+    { text: '一起打瓦羅蘭吧', fn: () => { changeStat('favor', 2); changeStat('combat', 1); setDialogue('陣恩延', '陣恩延：「好啊！不過我不打算輸給你。」\n你們開始了一場激烈的遊戲對決！', null); } },
+    { text: '嘲諷台中比較落後', fn: () => { changeStat('favor', 3); setDialogue('陣恩延', '陣恩延得意地笑了：「可不是嘛，幸好我們在延恩鎮。」', null); } }
+  ]);
+  updateUI();
+}
+
+function talk679() {
+  if (G.dayOfWeek === 2) {
+    // Tuesday - 679 is tumbleweed
+    setDialogue('???', '今天是周二，超商公休。\n你在路邊看到一顆緩緩滾動的風滾草...\n仔細一看，679正窩在裡面睡覺。\n679（睡眼惺忪）：「今天不用上班，別打擾我...zzzz」', null);
+    return;
+  }
+  if (Math.random() < 0.10) {
+    setDialogue('超商', '你去超商找679，但今天他人不知道去哪了...\n超商空蕩蕩的。', null);
+    return;
+  }
+  G.shopCount679++;
+  setDialogue('679', '679（超商制服）：「歡迎光臨～今天要買什麼？\n哦對了，週一的i珍食便當還有喔。」\n\n679看起來就是個普通的超商店員，但總覺得哪裡怪怪的...', null);
+  if (G.shopCount679 >= 10) {
+    triggerEnding('trueB', '', '');
+  }
+}
+
+function interactStatue() {
+  setDialogue('傑拉德威雕像', '市中心廣場的傑拉德威雕像高聳入雲。\n他凝視著延恩鎮，彷彿見證了這裡的一切。\n\n旁邊的真理之口石像（港哥）靜靜地張著嘴。', [
+    { text: '把作品丟給港哥', fn: submitToGangGe },
+    { text: '默默欣賞雕像', fn: () => { setDialogue('廣場', '你靜靜欣賞著雕像。\n周圍蘿蔔隨風搖曳，遠處教堂傳來Techno聖歌的節拍。\n心情微微好轉。', null); changeStat('mood', 1); } }
+  ]);
+}
+
+function submitToGangGe() {
+  if (!useAction()) return;
+  G.statueUses++;
+  G.artSubmissions++;
+  
+  if (G.design < 70) {
+    changeStat('design', 2);
+    changeStat('mood', -1);
+    setDialogue('港哥', '真理之口石像緩緩開口...\n\n「醜。」\n\n你的作品被替換成了更高等級的版本，儘管心情受創，但設計能力確實提升了。', null);
+    notify('+設計2 -心情1 (港哥說醜)', 'var(--red)');
+  } else {
+    changeStat('design', 1);
+    changeStat('mood', 4);
+    setDialogue('港哥', '真理之口石像緩緩開口...\n\n「還行。」\n\n這是港哥罕見的正面評價！你的心情大好，設計能力也繼續提升。', null);
+    notify('+設計1 +心情4 (港哥說還行!)', 'var(--green)');
+  }
+  
+  checkTrueEndings();
+}
+
+// ===== SHOP =====
+function openShop() {
+  if (G.dayOfWeek === 2) {
+    setDialogue('超商', '⚠ 今天是周二，超商公休！\n679已變成風滾草躲在路邊...\n你只能悻悻然離去。', null);
+    return;
+  }
+  showScreen('shop-screen');
+  renderShop();
+}
+
+function renderShop() {
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = '';
+  const isMonday = G.dayOfWeek === 1;
+  
+  const shopItems = ['bento', 'ijian', 'drink_tht', 'drink_coco', 'methanol', 'vodka', 'south_rice', 'north_rice', 'pen', 'portable', 'cd', 'sniper'];
+  
+  // Random methanol chance
+  const hasMethanol = Math.random() < 0.15;
+  
+  shopItems.forEach(id => {
+    const item = ITEMS[id];
+    if (!item) return;
+    if (id === 'methanol' && !hasMethanol) return;
+    if (id === 'ijian' && !isMonday) return; // Monday only
+    
+    let price = item.price;
+    if (id === 'ijian' && isMonday) price = Math.round(price * 0.65); // 65% discount
+    
+    const div = document.createElement('div');
+    div.className = 'shop-item';
+    div.innerHTML = `
+      <div class="shop-item-icon">${item.icon}</div>
+      <div class="shop-item-name">${item.name}${id==='ijian'?'<br><span style="color:var(--red);font-size:10px">★週一限定65折</span>':''}</div>
+      <div class="shop-item-price">$${price}</div>
+      <div class="shop-item-effect">${item.effect}</div>
+    `;
+    div.onclick = () => buyItem(id, price);
+    grid.appendChild(div);
+  });
+}
+
+function buyItem(id, price) {
+  if (G.money < price) {
+    notify('錢不夠！', 'var(--red)');
+    return;
+  }
+  const item = ITEMS[id];
+  changeStat('money', -price);
+  addItem(id, item.name, item.icon, 1);
+  notify('購買了 ' + item.name + '！', 'var(--accent)');
+  document.getElementById('shop-money').textContent = '💰 $' + G.money;
+}
+
+function closeShop() {
+  showScreen('game-screen');
+  updateUI();
+}
+
+// ===== INVENTORY =====
+function addItem(id, name, icon, count) {
+  const existing = G.inventory.find(i => i.id === id);
+  if (existing) existing.count += count;
+  else G.inventory.push({ id, name, icon, count });
+}
+
+let selectedItem = null;
+
+function showInventory() {
+  showScreen('inventory-screen');
+  renderInventory();
+}
+
+function renderInventory() {
+  const grid = document.getElementById('inv-grid');
+  grid.innerHTML = '';
+  G.inventory.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'inv-item' + (selectedItem && selectedItem.id === item.id ? ' selected' : '');
+    div.innerHTML = `<div class="item-icon">${item.icon}</div><div class="item-name">${item.name}</div><div class="item-count">x${item.count}</div>`;
+    div.onclick = () => selectItem(item);
+    grid.appendChild(div);
+  });
+}
+
+function selectItem(item) {
+  selectedItem = item;
+  renderInventory();
+  
+  const detail = document.getElementById('inv-detail');
+  const itemData = ITEMS[item.id] || {};
+  detail.innerHTML = `
+    <div class="inv-detail-icon">${item.icon}</div>
+    <div class="inv-detail-info">
+      <div class="inv-detail-name">${item.name}</div>
+      <div class="inv-detail-desc">${itemData.effect || '特殊道具'}</div>
+    </div>
+  `;
+  
+  const actions = document.getElementById('inv-actions');
+  actions.innerHTML = '';
+  
+  const useBtn = document.createElement('button');
+  useBtn.className = 'inv-use-btn btn-use';
+  useBtn.textContent = '使用';
+  useBtn.onclick = () => useItem(item);
+  
+  const giveBtn = document.createElement('button');
+  giveBtn.className = 'inv-use-btn btn-give';
+  giveBtn.textContent = '送給陣恩延';
+  giveBtn.onclick = () => giveToZhen(item);
+  
+  actions.appendChild(useBtn);
+  actions.appendChild(giveBtn);
+}
+
+function useItem(item) {
+  const data = ITEMS[item.id];
+  if (!data) { notify('無法使用此物品', 'var(--dim)'); return; }
+  
+  item.count--;
+  if (item.count <= 0) G.inventory = G.inventory.filter(i => i.id !== item.id);
+  
+  if (data.moodUp) changeStat('mood', data.moodUp);
+  if (item.id === 'pen') changeStat('design', 1);
+  if (item.id === 'tablet') { changeStat('design', 4); changeStat('mood', 10); }
+  if (item.id === 'player_tablet') { changeStat('design', 3); changeStat('mood', 5); }
+  if (item.id === 'portable') changeStat('mood', 3);
+  if (item.id === 'sniper') changeStat('combat', 4);
+  if (item.id === 'methanol') {
+    changeStat('mood', -20);
+    if (G.mood <= -50) achievement('💀', '嗜酒成性', '喝假酒喝死了...');
+  }
+  
+  notify('使用了 ' + item.name, 'var(--accent)');
+  renderInventory();
+  updateUI();
+}
+
+function giveToZhen(item) {
+  const data = ITEMS[item.id];
+  item.count--;
+  if (item.count <= 0) G.inventory = G.inventory.filter(i => i.id !== item.id);
+  
+  let response = '';
+  let favorChange = data ? (data.favorUp || 0) : 0;
+  
+  if (item.id === 'south_rice') {
+    response = '陣恩延：「這才是真正的肉燥飯！你懂我！」';
+    favorChange = 5;
+  } else if (item.id === 'north_rice') {
+    response = '陣恩延：「這什麼鬼東西你們根本不懂真正的食物。」';
+    favorChange = -2;
+  } else if (item.id === 'methanol') {
+    response = '陣恩延：「...這是什麼味道？」\n陣恩延誤喝了假酒，精神狀態陷入混亂...';
+    changeStat('zhenMood', -15);
+    favorChange = -5;
+  } else if (item.id === 'vodka') {
+    response = '陣恩延喝了伏特加，精神狀態陷入隨機混亂...\n陣恩延的表情變得奇怪起來。';
+    changeStat('zhenMood', Math.random() < 0.5 ? 10 : -5);
+    favorChange = 10;
+  } else if (item.id === 'tablet') {
+    response = '陣恩延：「液晶繪圖板！？你這是...謝謝。」\n陣恩延的眼神裡有了不一樣的光芒。';
+    favorChange = 5;
+  } else if (item.id === 'feather') {
+    response = '陣恩延：「夜露的羽毛？在哪裡撿到的？這個很少見...\n...謝謝你。」';
+    favorChange = 3;
+  }
+  
+  changeStat('favor', favorChange);
+  setDialogue('陣恩延', response || ('你把' + item.name + '送給了陣恩延。'), null);
+  notify((favorChange >= 0 ? '+' : '') + '好感' + favorChange, favorChange >= 0 ? 'var(--pink)' : 'var(--red)');
+  renderInventory();
+  updateUI();
+  showScreen('game-screen');
+}
+
+function closeInventory() {
+  showScreen('game-screen');
+  updateUI();
+}
+
+// ===== MAP =====
+function showMap() {
+  showScreen('map-screen');
+}
+
+function closeMap() {
+  showScreen('game-screen');
+  updateUI();
+}
+
+function flyTo(city) {
+  if (city === G.location) {
+    document.getElementById('map-info').innerHTML = '你已經在' + cityName(city) + '了！';
+    return;
+  }
+  document.getElementById('map-info').innerHTML = `前往${cityName(city)}\n費用: $300\n確定搭飛機嗎？`;
+  setTimeout(() => {
+    if (G.money < 300) {
+      notify('錢不夠搭飛機！', 'var(--red)');
+      return;
+    }
+    changeStat('money', -300);
+    G.location = city;
+    document.getElementById('map-info').innerHTML = `已抵達 ${cityName(city)}！`;
+    notify('✈ 抵達' + cityName(city), 'var(--accent)');
+    closeMap();
+    setDialogue('旅行', '你搭飛機抵達了' + cityName(city) + '。\n' + cityDesc(city), null);
+  }, 800);
+}
+
+function cityName(c) {
+  return { taipei: '台北市', taichung: '台中市', kaohsiung: '高雄市' }[c] || c;
+}
+function cityDesc(c) {
+  const d = {
+    taipei: '這裡物價很高，但商品品質也更好。延恩鎮就在這附近。',
+    taichung: '台中市（含彰化區）物價比台北實惠，氣氛也輕鬆許多。',
+    kaohsiung: '高雄市（含台南區、嘉義區、屏東區）南部的陽光和熱情讓你心情大好！\n說到肉燥飯，這裡的才是正宗的！'
+  };
+  return d[c] || '';
+}
+
+// ===== COMBAT =====
+let combatState = {};
+
+function startCombat() {
+  showScreen('combat-screen');
+  const enemies = [
+    { name: '路邊混混', hp: 60, atk: 8, isBoss: false },
+    { name: '設計系大四生', hp: 80, atk: 12, isBoss: false },
+    { name: '瓦羅蘭排位敵人', hp: 100, atk: 15, isBoss: false },
+    { name: 'BOSS: 傑拉德路守衛', hp: 150, atk: 20, isBoss: true }
+  ];
+  
+  const isBoss = G.combat >= 70 && Math.random() < 0.3;
+  const enemy = isBoss ? enemies[3] : enemies[Math.floor(Math.random() * 3)];
+  
+  combatState = {
+    playerHP: 100 + G.combat,
+    playerMaxHP: 100 + G.combat,
+    enemyHP: enemy.hp,
+    enemyMaxHP: enemy.hp,
+    enemyAtk: enemy.atk,
+    enemyName: enemy.name,
+    isBoss: enemy.isBoss,
+    turn: 0
+  };
+  
+  document.getElementById('enemy-name').textContent = enemy.name;
+  document.getElementById('enemy-name-hp').textContent = enemy.name;
+  updateCombatUI();
+  document.getElementById('combat-log').textContent = `戰鬥開始！對手是【${enemy.name}】！\n`;
+}
+
+function updateCombatUI() {
+  const ps = combatState.playerHP / combatState.playerMaxHP * 100;
+  const es = combatState.enemyHP / combatState.enemyMaxHP * 100;
+  document.getElementById('player-hp-bar').style.width = Math.max(0, ps) + '%';
+  document.getElementById('enemy-hp-bar').style.width = Math.max(0, es) + '%';
+  document.getElementById('player-hp-text').textContent = combatState.playerHP + '/' + combatState.playerMaxHP;
+  document.getElementById('enemy-hp-text').textContent = combatState.enemyHP + '/' + combatState.enemyMaxHP;
+}
+
+function combatLog(msg) {
+  const log = document.getElementById('combat-log');
+  log.textContent += msg + '\n';
+  log.scrollTop = log.scrollHeight;
+}
+
+function combatAction(type) {
+  if (!combatState.enemyHP) return;
+  combatState.turn++;
+  
+  let playerDmg = 0;
+  let dodged = false;
+  
+  if (type === 'attack') {
+    playerDmg = Math.floor((10 + G.combat * 0.3) * (0.8 + Math.random() * 0.4));
+    combatLog('🔫 你射擊！造成 ' + playerDmg + ' 傷害！');
+  } else if (type === 'dodge') {
+    dodged = Math.random() < 0.65;
+    if (dodged) combatLog('💨 你成功閃避了攻擊！');
+    else combatLog('💨 閃避失敗！');
+  } else if (type === 'snipe') {
+    if (Math.random() < 0.6) {
+      playerDmg = Math.floor((25 + G.combat * 0.5) * (0.9 + Math.random() * 0.2));
+      combatLog('🎯 狙擊命中！造成 ' + playerDmg + ' 爆擊傷害！');
+    } else {
+      combatLog('🎯 狙擊未命中...');
+    }
+  } else if (type === 'retreat') {
+    combatLog('🏃 你選擇撤退...');
+    changeStat('mood', -2);
+    changeStat('combat', 1);
+    setDialogue('撤退', '你選擇撤退，這次學到了一點戰鬥經驗。', null);
+    showScreen('game-screen');
+    updateUI();
+    return;
+  }
+  
+  combatState.enemyHP = Math.max(0, combatState.enemyHP - playerDmg);
+  updateCombatUI();
+  
+  if (combatState.enemyHP <= 0) {
+    combatLog('🏆 你贏了！');
+    changeStat('combat', 2);
+    changeStat('mood', 2);
+    if (combatState.isBoss) {
+      achievement('🏆', '你也是瓦學妹？', '擊敗了最終Boss！');
+    }
+    notify('戰鬥勝利！ +戰鬥2 +心情2', 'var(--green)');
+    setTimeout(() => {
+      setDialogue('勝利', '你贏得了這場瓦羅蘭對決！\n' + (combatState.isBoss ? '成就解鎖：「你也是瓦學妹？」' : '不錯的戰鬥！'), null);
+      showScreen('game-screen');
+      updateUI();
+    }, 1200);
+    return;
+  }
+  
+  // Enemy turn
+  if (!dodged) {
+    const enemyDmg = Math.floor(combatState.enemyAtk * (0.7 + Math.random() * 0.6));
+    combatState.playerHP = Math.max(0, combatState.playerHP - enemyDmg);
+    combatLog('💥 ' + combatState.enemyName + '攻擊！你受到 ' + enemyDmg + ' 傷害！');
+    updateCombatUI();
+    
+    if (combatState.playerHP <= 0) {
+      combatLog('💀 你被擊敗了...');
+      changeStat('mood', -3);
+      notify('戰鬥失敗 -心情3', 'var(--red)');
+      setTimeout(() => {
+        setDialogue('失敗', '你在這場戰鬥中落敗了... 心情很差。', null);
+        showScreen('game-screen');
+        updateUI();
+      }, 1200);
+    }
+  }
+}
+
+// ===== END DAY =====
+function endDay() {
+  G.day++;
+  G.dayOfWeek = ((G.dayOfWeek) % 7) + 1;
+  G.timePhase = 0;
+  G.actionsLeft = 2;
+  G.actionsToday = [];
+  
+  // Consecutive days without Zhen
+  G.daysSinceZhen++;
+  if (G.daysSinceZhen >= 3) {
+    changeStat('favor', -10);
+    changeStat('zhenMood', -5);
+    notify('⚠ 已3天沒找陣恩延！好感度大降！', 'var(--red)');
+    setDialogue('系統', '你已經連續 ' + G.daysSinceZhen + ' 天沒有找陣恩延說話了。\n陣恩延的好感度急速下降，精神狀態也開始紊亂...\n陣恩延：「...你根本不在乎我吧。」', null);
+  }
+  
+  // Passive mood recovery
+  changeStat('mood', 1);
+  
+  updateUI();
+  notify('第 ' + G.day + ' 天開始！', 'var(--border)');
+  
+  if (G.daysSinceZhen < 3) {
+    setDialogue('延恩鎮', '第 ' + G.day + ' 天，' + DAYS[G.dayOfWeek] + '。\n' + 
+      (G.dayOfWeek === 2 ? '⚠ 今天是周二，超商公休！679變成風滾草了。\n' : '') +
+      (G.dayOfWeek === 1 ? '★ 今天是周一！超商有i珍食便當65折！\n' : '') +
+      '新的一天，你打算做什麼呢？', null);
+  }
+  
+  checkTrueEndings();
+  checkNormalEndCondition();
+}
+
+// ===== ENDINGS =====
+function checkTrueEndings() {
+  // True A: design 100 + multiple "醜"
+  if (G.design >= 100 && G.statueUses >= 5) {
+    triggerEnding('trueA', '', '');
+  }
+  // True C: game 20+ times
+  if (G.gameplayCount >= 20) {
+    triggerEnding('trueC', '', '');
+  }
+  // True B: 679 x10
+  if (G.shopCount679 >= 10) {
+    triggerEnding('trueB', '', '');
+  }
+}
+
+function checkNormalEndCondition() {
+  if (G.favor >= 80 && G.day >= 10) {
+    if (Math.random() < 0.3) {
+      triggerEnding('good', '', '');
+    }
+  }
+}
+
+function triggerEnding(type, who, extra) {
+  showScreen('ending-screen');
+  const et = document.getElementById('ending-title');
+  const ed = document.getElementById('ending-text');
+  
+  if (type === 'bad') {
+    et.textContent = 'BAD END';
+    et.style.color = 'var(--red)';
+    ed.textContent = who + '的故事在延恩鎮畫下了句點。\n' + extra + '\n\n延恩鎮依舊靜靜矗立，蘿蔔繼續在傑拉德路旁生長。';
+  } else if (type === 'good') {
+    et.textContent = 'GOOD END ♥';
+    et.style.color = 'var(--pink)';
+    ed.textContent = '陣恩延對著你微笑：「你知道嗎...我喜歡你。」\n\n在延恩鎮，傑拉德威雕像見證了你們的相遇。\n教堂的Techno聖歌聲中，你們在市中心廣場攜手同行。\n\n這是屬於你們的延恩鎮故事。';
+  } else if (type === 'trueA') {
+    et.textContent = 'TRUE END A ★';
+    et.style.color = 'var(--accent)';
+    ed.textContent = '港哥一次又一次說著「醜」，每一次你都咬牙重新來過。\n\n設計技能達到頂點的那一天，你看清了延恩鎮，\n也看清了設計的本質。\n\n你收拾行囊，離開了延恩鎮。\n\n多年後，你成為獨當一面的設計師，\n偶爾回想起傑拉德路上的蘿蔔，和那座真理之口石像。\n\n「醜」——那個字，竟成了你一生的動力。';
+  } else if (type === 'trueB') {
+    et.textContent = 'TRUE END B 🏪';
+    et.style.color = 'var(--green)';
+    ed.textContent = '你認識679已經不知道多少次了。\n\n某一天，679突然說：\n「欸，我們超商缺人手，你要來上班嗎？」\n\n就這樣，你成為了超商的一員。\n周二，你和679一起變成風滾草躲在路邊。\n周一，你們一起賣打折的i珍食便當。\n\n成就解鎖：「超商之神」\n\n延恩鎮的超商，永遠是最溫暖的地方。';
+  } else if (type === 'trueC') {
+    et.textContent = 'TRUE END C 🎮';
+    et.style.color = 'var(--border)';
+    ed.textContent = '不知從何時開始，你一整天只剩下打遊戲。\n\n瓦羅蘭的世界比延恩鎮更真實，\n螢幕的光芒比教堂的Techno聖歌更動人。\n\n你在延恩鎮的小房間裡，\n建立了屬於自己的電競王國。\n\n成就解鎖：「電競仔」\n\n陣恩延偶爾還是會發訊息...\n但你已經很久沒有回覆了。';
+  }
+}
+
+function restartGame() {
+  Object.assign(G, {
+    day: 1, dayOfWeek: 1, timePhase: 0, money: 3000, actionsLeft: 2, actionsToday: [],
+    design: 10, social: 10, combat: 10, mood: 50, zhenMood: 50, favor: 0,
+    daysSinceZhen: 0, statueUses: 0, gameplayCount: 0, shopCount679: 0, artSubmissions: 0,
+    inventory: [
+      { id: 'pen', name: '筆', icon: '✏', count: 3, type: 'create', price: 20 },
+      { id: 'bento', name: '一般便當', icon: '🍱', count: 1, type: 'food', price: 110 }
+    ],
+    location: 'taipei', currentScene: 'square',
+    playerHP: 100, enemyHP: 100, achievements: []
+  });
+  showScreen('title-screen');
+  updateUI();
+}
+
+// Init
+updateUI();
+</script>
+</body>
+</html>
